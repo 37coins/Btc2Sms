@@ -50,7 +50,7 @@ public abstract class MessagingForwarder extends ListActivity {
                 "Sent SMS"
         };
                 
-        Spinner spinner = (Spinner) findViewById(R.id.inbox_selector);        
+        Spinner spinner = null;// = (Spinner) findViewById(R.id.inbox_selector);
         
         ArrayAdapter<String> inboxTypeAdapter = new ArrayAdapter<String>(this,
             android.R.layout.simple_spinner_item, inboxTypeNames);

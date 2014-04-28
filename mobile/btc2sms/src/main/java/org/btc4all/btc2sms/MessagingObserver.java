@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
-import java.util.List;
 
 public final class MessagingObserver extends ContentObserver {
 

@@ -60,7 +60,6 @@
 					<configuration>
 						<sdk>
 							<platform>17</platform>
-            				<path>/Users/johann/adtBundleMac/sdk/</path>
 						</sdk>
 												<zipalign>
 							<verbose>true</verbose>
