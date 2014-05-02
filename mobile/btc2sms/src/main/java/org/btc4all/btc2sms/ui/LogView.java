@@ -12,9 +12,9 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.*;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -28,8 +28,35 @@ import org.btc4all.btc2sms.task.HttpTask;
 
 import java.util.List;
 
-public class LogView extends Activity {   
-	
+public class LogView extends Activity {
+
+    private static final String jsInjectCode =
+            "function parseForm(event) {" +
+                    "    var form = this;" +
+    "    if (this.tagName.toLowerCase() != 'form')" +
+            "        form = this.form;" +
+            "    var data = '';" +
+            "    if (!form.method)  form.method = 'get';" +
+            "    data += 'method=' + form.method;" +
+            "    data += '&action=' + form.action;" +
+            "    var inputs = document.forms[0].getElementsByTagName('input');" +
+            "    for (var i = 0; i < inputs.length; i++) {" +
+            "         var field = inputs[i];" +
+            "         if (field.type != 'submit' && field.type != 'reset' && field.type != 'button')" +
+            "             data += '&' + field.name + '=' + field.value;" +
+            "    }" +
+            "    window.Android.processFormData(data);" +
+            "}" +
+            "" +
+            "for (var form_idx = 0; form_idx < document.forms.length; ++form_idx)" +
+            "    document.forms[form_idx].addEventListener('submit', parseForm, false);" +
+            "var inputs = document.getElementsByTagName('input');" +
+            "for (var i = 0; i < inputs.length; i++) {" +
+            "    if (inputs[i].getAttribute('type') == 'button')" +
+            "        inputs[i].addEventListener('click', parseForm, false);" +
+            "}" +
+            "";
+
     private App app;
     
     private BroadcastReceiver logReceiver = new BroadcastReceiver() {
@@ -43,14 +70,14 @@ public class LogView extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {  
             updateUpgradeButton();
-            //updateInfo();
+            updateInfo();
         }
     };    
     
     private BroadcastReceiver expansionPacksReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {  
-//            updateInfo();
+        public void onReceive(Context context, Intent intent) {
+            updateInfo();
         }
     };        
 
@@ -60,13 +87,15 @@ public class LogView extends Activity {
     private TextView heading;
     private WebView loginWebView;
     private LinearLayout logLayout;
+
+    private boolean firstTimeLoad;
     
     private class TestTask extends HttpTask
     {
         public TestTask() {
             super(LogView.this.app, new BasicNameValuePair("action", App.ACTION_TEST));   
         }
-        
+
         @Override
         protected void handleResponse(HttpResponse response) throws Exception 
         {
@@ -122,6 +151,7 @@ public class LogView extends Activity {
     }
 
     private void preLoad(final Bundle savedInstanceState) {
+
         setContentView(R.layout.splash);
         LayoutInflater li = getLayoutInflater();
         logLayout = (LinearLayout) li.inflate(R.layout.log_view, null);
@@ -130,13 +160,43 @@ public class LogView extends Activity {
         webSettings.setJavaScriptEnabled(true);
         class AndroidJS {
 
-            public void loadComplete()
-            {
-                Log.d("JS", "load complete");
+            @JavascriptInterface
+            public void processFormData(String formData) {
+                Log.d("JS", formData);
+                String password = null;
+                int i = formData.indexOf("password=");
+                if (i == -1) return;
+                password = formData.substring(i + 9);
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(LogView.this);
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("amqp_password", password);
+                editor.commit();
             }
 
-            public void setConfig(String basePath, String cn, String mobile, String apiSecret, String servicePath, String password)
-            {
+            @JavascriptInterface
+            public void loadComplete() {
+                Log.d("JS", "load complete");
+                Thread viewThread = new Thread() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                setContentView(logLayout);
+                                loginWebView.setVisibility(1);
+                                if (firstTimeLoad) {
+                                    firstTimeLoad = false;
+                                    continueLoading(savedInstanceState);
+                                }
+                            }
+                        });
+                    }
+                };
+                viewThread.start();
+                loginWebView.loadUrl("javascript:(function() { " +
+                        LogView.jsInjectCode + "})()");
+            }
+
+            @JavascriptInterface
+            public void setConfig(String basePath, String cn, String mobile, String apiSecret, String servicePath, String password) {
                 Log.d("JS", "set config");
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(LogView.this);
                 SharedPreferences.Editor editor = pref.edit();
@@ -157,46 +217,49 @@ public class LogView extends Activity {
                 editor.putString("amqp_vhost", "/");
                 editor.putBoolean("amqp_ssl", false);
                 editor.putString("amqp_user", cn);
-                editor.putString("amqp_password", "");
                 editor.putString("amqp_queue", cn);
                 editor.putString("amqp_heartbeat", "60");
                 editor.putBoolean("enabled", true);
                 editor.commit();
+                Thread viewThread = new Thread() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                updateInfo();
+                            }
+                        });
+                    }
+                };
+                viewThread.start();
             }
         }
         loginWebView.addJavascriptInterface(new AndroidJS(), "Android");
-        loginWebView.setWebViewClient(new WebViewClient()
-        {
-            @Override
-            public void onPageFinished (WebView view, String url)
-            {
-                setContentView(logLayout);
-                loginWebView.setVisibility(1);
-                continueLoading(savedInstanceState);
-            }
-        });
-        loginWebView.loadUrl("https://www.37coins.com/gateways?noHead=true");
 
+        loginWebView.loadUrl("https://www.37coins.com/gateways?noHead=true");
+        Log.d("TEST", "pre load finish");
     }
 
     private void continueLoading(Bundle savedInstanceState)
     {
-        PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
-        scrollView = (ScrollView) this.findViewById(R.id.log_scroll);
-        //heading = (TextView) this.findViewById(R.id.heading);
-        //info = (TextView) this.findViewById(R.id.info);
-        //updateInfo();
-
-        log = (TextView) this.findViewById(R.id.log);
-
-        log.setMovementMethod(LinkMovementMethod.getInstance());
-
-        updateUpgradeButton();
-        //updateLogView();
-
         registerReceiver(logReceiver, new IntentFilter(App.LOG_CHANGED_INTENT));
         registerReceiver(settingsReceiver, new IntentFilter(App.SETTINGS_CHANGED_INTENT));
         registerReceiver(expansionPacksReceiver, new IntentFilter(App.EXPANSION_PACKS_CHANGED_INTENT));
+
+        PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
+
+        heading = (TextView) this.findViewById(R.id.heading);
+        info = (TextView) this.findViewById(R.id.info);
+
+        updateInfo();
+
+        scrollView = (ScrollView) this.findViewById(R.id.log_scroll);
+
+        log = (TextView) this.findViewById(R.id.log);
+        log.setMovementMethod(LinkMovementMethod.getInstance());
+
+        updateUpgradeButton();
+        updateLogView();
+
 
         if (savedInstanceState == null)
         {
@@ -226,11 +289,11 @@ public class LogView extends Activity {
         
         app = (App) getApplication();
 
+        firstTimeLoad = true;
+
         preLoad(savedInstanceState);
 
     }
-
-
 
     public static final int NO_DIALOG = 0;
     public static final int UPGRADE_DIALOG = 1;
@@ -382,7 +445,7 @@ public class LogView extends Activity {
     
     @Override
     public void onDestroy()
-    {        
+    {
         unregisterReceiver(logReceiver);        
         unregisterReceiver(settingsReceiver);
         unregisterReceiver(expansionPacksReceiver);
@@ -434,11 +497,12 @@ public class LogView extends Activity {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem retryItem = menu.findItem(R.id.retry_now);
-        int pendingTasks = app.getPendingTaskCount();
-        retryItem.setEnabled(pendingTasks > 0);
-        retryItem.setTitle("Retry All (" + pendingTasks + ")");
-        
+        if (BuildConfig.DEBUG) {
+            MenuItem retryItem = menu.findItem(R.id.retry_now);
+            int pendingTasks = app.getPendingTaskCount();
+            retryItem.setEnabled(pendingTasks > 0);
+            retryItem.setTitle("Retry All (" + pendingTasks + ")");
+        }
         return true;
     }
     

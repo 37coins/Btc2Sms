@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="30" android:versionName="0.1.0-SNAPSHOT" package="org.btc4all.btc2sms">
-         
+
     <uses-sdk android:minSdkVersion="4"/>
          
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>              
@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.btc4all.btc2sms.ui.LogView">
+        <activity android:screenOrientation="portrait" android:name="org.btc4all.btc2sms.ui.LogView">
         </activity>        
 
         <activity android:label="@string/help_title" android:name="org.btc4all.btc2sms.ui.Help">

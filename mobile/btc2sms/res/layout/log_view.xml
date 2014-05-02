@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:background="#333333" android:id="@+id/log_layout">
-<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -26,7 +26,7 @@
     android:gravity="center" 
     android:id="@+id/info" 
 ></TextView>
-</LinearLayout>-->
+</LinearLayout>
 
     <WebView
             android:layout_width="wrap_content"
