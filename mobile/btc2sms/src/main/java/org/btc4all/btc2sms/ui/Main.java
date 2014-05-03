@@ -1,12 +1,9 @@
 package org.btc4all.btc2sms.ui;
 
-import org.btc4all.btc2sms.App;
-import org.btc4all.btc2sms.ui.LogView;
-import org.btc4all.btc2sms.ui.Prefs;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import org.btc4all.btc2sms.App;
 
 public class Main extends Activity {   
 	
@@ -19,6 +16,6 @@ public class Main extends Activity {
         
         app = (App)getApplication();
                 
-        startActivity(new Intent(this, LogView.class));       
+        startActivity(new Intent(this, LogView.class));
     }    
 }
