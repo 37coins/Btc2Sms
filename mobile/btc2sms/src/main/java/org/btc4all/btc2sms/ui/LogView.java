@@ -30,33 +30,6 @@ import java.util.List;
 
 public class LogView extends Activity {
 
-    private static final String jsInjectCode =
-            "function parseForm(event) {" +
-                    "    var form = this;" +
-    "    if (this.tagName.toLowerCase() != 'form')" +
-            "        form = this.form;" +
-            "    var data = '';" +
-            "    if (!form.method)  form.method = 'get';" +
-            "    data += 'method=' + form.method;" +
-            "    data += '&action=' + form.action;" +
-            "    var inputs = document.forms[0].getElementsByTagName('input');" +
-            "    for (var i = 0; i < inputs.length; i++) {" +
-            "         var field = inputs[i];" +
-            "         if (field.type != 'submit' && field.type != 'reset' && field.type != 'button')" +
-            "             data += '&' + field.name + '=' + field.value;" +
-            "    }" +
-            "    window.Android.processFormData(data);" +
-            "}" +
-            "" +
-            "for (var form_idx = 0; form_idx < document.forms.length; ++form_idx)" +
-            "    document.forms[form_idx].addEventListener('submit', parseForm, false);" +
-            "var inputs = document.getElementsByTagName('input');" +
-            "for (var i = 0; i < inputs.length; i++) {" +
-            "    if (inputs[i].getAttribute('type') == 'button')" +
-            "        inputs[i].addEventListener('click', parseForm, false);" +
-            "}" +
-            "";
-
     private App app;
     
     private BroadcastReceiver logReceiver = new BroadcastReceiver() {
@@ -161,19 +134,6 @@ public class LogView extends Activity {
         class AndroidJS {
 
             @JavascriptInterface
-            public void processFormData(String formData) {
-                Log.d("JS", formData);
-                String password = null;
-                int i = formData.indexOf("password=");
-                if (i == -1) return;
-                password = formData.substring(i + 9);
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(LogView.this);
-                SharedPreferences.Editor editor = pref.edit();
-                editor.putString("amqp_password", password);
-                editor.commit();
-            }
-
-            @JavascriptInterface
             public void loadComplete() {
                 Log.d("JS", "load complete");
                 Thread viewThread = new Thread() {
@@ -191,18 +151,15 @@ public class LogView extends Activity {
                     }
                 };
                 viewThread.start();
-                loginWebView.loadUrl("javascript:(function() { " +
-                        LogView.jsInjectCode + "})()");
             }
 
             @JavascriptInterface
             public void setConfig(String basePath, String cn, String mobile, String apiSecret, String servicePath, String password) {
-                Log.d("JS", "set config");
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(LogView.this);
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putString("server_url", String.format("%s/envayasms/%s/sms", basePath, cn));
                 editor.putString("phone_number", mobile);
-                editor.putString("password", password);
+                editor.putString("password", apiSecret);
                 editor.putString("outgoing_interval", "0");
                 editor.putBoolean("keep_in_inbox", false);
                 editor.putBoolean("call_notifications", false);
@@ -217,6 +174,7 @@ public class LogView extends Activity {
                 editor.putString("amqp_vhost", "/");
                 editor.putBoolean("amqp_ssl", false);
                 editor.putString("amqp_user", cn);
+                editor.putString("amqp_password", password);
                 editor.putString("amqp_queue", cn);
                 editor.putString("amqp_heartbeat", "60");
                 editor.putBoolean("enabled", true);
