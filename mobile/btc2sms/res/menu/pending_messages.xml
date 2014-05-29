@@ -3,5 +3,5 @@
     <item android:id="@+id/retry_all"
           android:title="Retry all" />
     <item android:id="@+id/delete_all"
-          android:title="Delete all" />          
+          android:title="Delete all" />
 </menu>
