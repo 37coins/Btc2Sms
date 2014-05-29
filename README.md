@@ -17,9 +17,9 @@ set `<sdk><path>` in `mobile/pom.xml`, then build with `mvn clean install`
 ## Old
 
 
-EnvayaSMS is an Android app that acts as a SMS and MMS gateway. 
+EnvayaSMS is an Android app that acts as a SMS and MMS gateway.
 
-For more information and installation instructions, 
+For more information and installation instructions,
 see http://sms.envaya.org/
 
 This project uses ant (or NetBeans) as the build tool.

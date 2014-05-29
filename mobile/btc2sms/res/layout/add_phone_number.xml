@@ -3,5 +3,5 @@
     android:id="@+id/add_phone_number_text"
     android:layout_width="fill_parent"
     android:inputType="phone"
-    android:layout_height="wrap_content">                           
+    android:layout_height="wrap_content">
 </EditText>
