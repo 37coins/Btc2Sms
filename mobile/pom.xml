@@ -28,7 +28,7 @@
 				<artifactId>android-test</artifactId>
 				<version>${platform.version}</version>
 				<scope>provided</scope>
-			</dependency>
+			</dependency><!-- 20140611 - If anything is modified in android, does it need to be modified for android-test, as well? -->
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
@@ -59,9 +59,10 @@
 					<version>${android.plugin.version}</version>
 					<configuration>
 						<sdk>
-							<platform>17</platform>
+							<platform>17</platform> <!-- 20140609 - Nathan Basanese - I should note that the only "Android Virtual Devices" I ran on the android emulator were for platform 13. -->
+							<path><!--Put a property reference to your SDK here. --></path> <!-- Yes, I was a good boy and created a settings file. Impatience... -->
 						</sdk>
-												<zipalign>
+						<zipalign>
 							<verbose>true</verbose>
 						</zipalign>
 						<undeployBeforeDeploy>true</undeployBeforeDeploy>
@@ -85,7 +86,7 @@
 			</activation>
 			<modules>
 				<module>btc2sms</module>
-				<module>btc2sms-it</module>
+				<module>btc2sms-it</module> <!-- 20140609 - Nathan Basanese - The "it" at the end, here, stands for "integration tests", unless I miss my guess. -->
 			</modules>
 		</profile>
 		<profile>

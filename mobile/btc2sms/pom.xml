@@ -142,11 +142,11 @@
 									<includes>
 										<include>${project.build.directory}/${project.artifactId}.apk</include>
 									</includes>
-									<keystore>${sign.keystore}</keystore>
-									<alias>${sign.alias}</alias>
-									<storepass>${sign.storepass}</storepass>
-									<keypass>${sign.keypass}</keypass>
-									<verbose>false</verbose>
+									<keystore>/home/nbas/bin/37coins/secure_area_do_not_git/37coins_keystore.keystore</keystore><!-- formerly <keystore>${sign.keystore}</keystore> -->
+									<alias>37coinsAndroidDev</alias><!--<alias>${sign.alias}</alias>-->
+									<storepass>${sign.storepass}</storepass><!--<storepass>${sign.storepass}</storepass>-->
+									<keypass>${sign.keypass}</keypass><!--former value in here was ${sign.keypass}-->
+									<verbose>true</verbose>
 									<arguments>
 										<argument>-sigalg</argument><argument>MD5withRSA</argument>
 										<argument>-digestalg</argument><argument>SHA1</argument>
